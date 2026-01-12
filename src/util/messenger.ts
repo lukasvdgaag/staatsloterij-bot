@@ -32,11 +32,12 @@ export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: 
         }] : [];
 
         const payload = {
+            content: '',
             embeds: [embed],
             components,
         };
 
-        const response = await fetch(webhookUrl, {
+        const response = await fetch(`${webhookUrl}?with_components=true`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
