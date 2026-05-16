@@ -25,7 +25,7 @@ const scrapePromotions = async (config: Config): Promise<Promotion[]> => {
       const $card = $(element);
       
       // Extract title
-      const $title = $card.find('h3');
+      const $title = $card.find('h3,h2');
       const title = $title.text().trim();
       
       // Extract description (from markdown)
