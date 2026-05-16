@@ -1,5 +1,7 @@
 # StaatsLoterij Discord Bot
 
+![StaatsLoterij logo](docs/img/banner.png)  
+
 A TypeScript bot that scrapes the StaatsLoterij promotions page daily and sends Discord notifications when new promotions are added.
 
 ## Features
@@ -46,11 +48,13 @@ yarn build
 ### 4. Run the Bot
 
 #### Development Mode (with auto-restart)
+
 ```bash
 yarn dev
 ```
 
 #### Production Mode
+
 ```bash
 yarn start
 ```
@@ -61,10 +65,10 @@ yarn start
 2. **Caching**: Promotions are stored in `promotions-cache.json` with unique IDs
 3. **Detection**: New promotions are identified by comparing with cached IDs
 4. **Notification**: Discord webhook sends rich embeds with:
-   - Promotion title
-   - Description
-   - Banner image
-   - CTA button linking to the promotion
+    - Promotion title
+    - Description
+    - Banner image
+    - CTA button linking to the promotion
 
 ## Project Structure
 
@@ -82,6 +86,7 @@ yarn start
 ## Cache File
 
 The bot creates a `promotions-cache.json` file that stores:
+
 - All current promotions with their IDs
 - Last check timestamp
 - Full promotion details
@@ -126,6 +131,7 @@ WantedBy=multi-user.target
 ```
 
 Then:
+
 ```bash
 sudo systemctl enable staatsloterij-bot
 sudo systemctl start staatsloterij-bot
@@ -139,8 +145,8 @@ Edit the `checkInterval` in `src/index.ts`:
 
 ```typescript
 const CONFIG = {
-  // ...
-  checkInterval: 24 * 60 * 60 * 1000, // 24 hours (in milliseconds)
+    // ...
+    checkInterval: 24 * 60 * 60 * 1000, // 24 hours (in milliseconds)
 };
 ```
 
@@ -150,10 +156,10 @@ Modify the embed in the `sendDiscordNotification` function:
 
 ```typescript
 const embed = {
-  title: promotion.title,
-  description: promotion.description,
-  color: 0x0066CC, // Change color here (hex without #)
-  // ... other properties
+    title: promotion.title,
+    description: promotion.description,
+    color: 0x0066CC, // Change color here (hex without #)
+    // ... other properties
 };
 ```
 
@@ -161,9 +167,11 @@ const embed = {
 
 ### Club Polls
 
-Staatsloterij has a monthly opinion panel (poll), where you can submit your answer to a selection of four options to a statement. You will get +5 club points for a submitted answer.  
+Staatsloterij has a monthly opinion panel (poll), where you can submit your answer to a selection of four options to a statement. You will get +5 club points
+for a submitted answer.
 
-They call `https://club-staatsloterij.nederlandseloterij.nl/poll/post` to submit your answer. Though, when you catch the sent out request, and send it again, you will get +5 points again. You can do this a couple times before the request expires! 🤑
+They call `https://club-staatsloterij.nederlandseloterij.nl/poll/post` to submit your answer. Though, when you catch the sent out request, and send it again,
+you will get +5 points again. You can do this a couple times before the request expires! 🤑
 
 ## Troubleshooting
 
@@ -176,6 +184,7 @@ They call `https://club-staatsloterij.nederlandseloterij.nl/poll/post` to submit
 ### Cache file issues
 
 If the bot keeps resending old promotions:
+
 1. Stop the bot
 2. Delete `promotions-cache.json`
 3. Restart the bot (it will rebuild the cache)
@@ -183,6 +192,7 @@ If the bot keeps resending old promotions:
 ### Scraping fails
 
 The StaatsLoterij website structure might have changed. Check:
+
 1. The URL is still accessible
 2. The HTML structure matches the selectors in the code
 3. Console logs for specific error messages
