@@ -1,4 +1,5 @@
 import { Promotion } from "../type/types";
+import { sanitizeUrl } from "./sanitizer";
 
 export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: string): Promise<void> => {
     if (!webhookUrl) {
@@ -14,7 +15,7 @@ export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: 
             author: {
                 name: 'Nieuwe Staatsloterij promotie!',
             },
-            image: promotion.imageUrl ? { url: promotion.imageUrl } : undefined,
+            image: promotion.imageUrl ? {url: sanitizeUrl(promotion.imageUrl)} : undefined,
             timestamp: new Date().toISOString(),
             footer: {
                 text: 'StaatsLoterij Promotions',
@@ -27,7 +28,7 @@ export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: 
                 type: 2, // Button
                 style: 5, // Link button
                 label: promotion.ctaText,
-                url: promotion.ctaUrl,
+                url: sanitizeUrl(promotion.ctaUrl),
             }],
         }] : [];
 
