@@ -22,7 +22,8 @@ export interface Promotion {
 export interface SiteDefinition {
     id: SiteId;
     name: string;
-    url: string;
+    baseUrl: string;
+    promotionsPath: string;
     color: number;
 
     scrape(html: string): Omit<Promotion, 'id' | 'source' | 'scrapedAt'>[];

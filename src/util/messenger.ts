@@ -19,7 +19,7 @@ export const sendDiscordNotification = async (
             author: {
                 name: `Nieuwe ${site.name} promotie!`,
             },
-            image: promotion.imageUrl ? {url: sanitizeUrl(promotion.imageUrl)} : undefined,
+            image: promotion.imageUrl ? {url: sanitizeUrl(site, promotion.imageUrl)} : undefined,
             timestamp: new Date().toISOString(),
             footer: {
                 text: `${site.name} Promotions`,
@@ -32,7 +32,7 @@ export const sendDiscordNotification = async (
                 type: 2, // Button
                 style: 5, // Link button
                 label: promotion.ctaText,
-                url: sanitizeUrl(promotion.ctaUrl),
+                url: sanitizeUrl(site, promotion.ctaUrl),
             }],
         }] : [];
 

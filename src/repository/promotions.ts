@@ -8,10 +8,12 @@ const generatePromotionId = (promotion: Omit<Promotion, 'id'>): string => {
     return Buffer.from(str).toString('base64').slice(0, 32);
 }
 
-const scrapesite = async (site: SiteDefinition): Promise<Omit<Promotion, 'id'>[]> => {
+const scrapeSite = async (site: SiteDefinition): Promise<Omit<Promotion, 'id'>[]> => {
     try {
-        console.log(`[${site.name}] Fetching promotions from ${site.url}...`);
-        const response = await fetch(site.url);
+        const promotionsPath = `${site.baseUrl}/${site.promotionsPath}`
+        console.log(`[${site.name}] Fetching promotions from ${promotionsPath}...`);
+
+        const response = await fetch(promotionsPath);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -37,7 +39,7 @@ export const checkForNewPromotions = async (config: Config): Promise<void> => {
     const allCurrentPromotions: Promotion[] = [];
 
     for (const site of sites) {
-        const rawPromotions = await scrapesite(site);
+        const rawPromotions = await scrapeSite(site);
 
         if (rawPromotions.length === 0) {
             console.log(`[${site.name}] No promotions found or error occurred`);
