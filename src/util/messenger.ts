@@ -1,7 +1,11 @@
-import { Promotion } from "../type/types";
-import { sanitizeUrl } from "./sanitizer";
+import {Promotion, SiteDefinition} from "../type/types";
+import {sanitizeUrl} from "./sanitizer";
 
-export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: string): Promise<void> => {
+export const sendDiscordNotification = async (
+    promotion: Promotion,
+    site: SiteDefinition,
+    webhookUrl: string,
+): Promise<void> => {
     if (!webhookUrl) {
         console.error('Discord webhook URL not configured');
         return;
@@ -11,14 +15,14 @@ export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: 
         const embed = {
             title: promotion.title,
             description: promotion.description,
-            color: 0xFF6601,
+            color: site.color,
             author: {
-                name: 'Nieuwe Staatsloterij promotie!',
+                name: `Nieuwe ${site.name} promotie!`,
             },
-            image: promotion.imageUrl ? {url: sanitizeUrl(promotion.imageUrl)} : undefined,
+            image: promotion.imageUrl ? {url: sanitizeUrl(site, promotion.imageUrl)} : undefined,
             timestamp: new Date().toISOString(),
             footer: {
-                text: 'StaatsLoterij Promotions',
+                text: `${site.name} Promotions`,
             },
         };
 
@@ -28,7 +32,7 @@ export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: 
                 type: 2, // Button
                 style: 5, // Link button
                 label: promotion.ctaText,
-                url: sanitizeUrl(promotion.ctaUrl),
+                url: sanitizeUrl(site, promotion.ctaUrl),
             }],
         }] : [];
 
@@ -49,10 +53,10 @@ export const sendDiscordNotification = async (promotion: Promotion, webhookUrl: 
 
         if (!response.ok) {
             console.error(await response.text());
-            throw new Error(`Discord API error! status: ${response.status}`);
+            console.error(`Discord API error! status: ${response.status}`);
         }
 
-        console.log(`Notification sent for: ${promotion.title}`);
+        console.log(`[${site.name}] Notification sent for: ${promotion.title}`);
     } catch (error) {
         console.error('Error sending Discord notification:', error);
     }

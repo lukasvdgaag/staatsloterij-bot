@@ -1,17 +1,31 @@
-# StaatsLoterij Discord Bot
+# PromoScout
 
-![StaatsLoterij logo](docs/img/banner.png)  
-
-A TypeScript bot that scrapes the StaatsLoterij promotions page daily and sends Discord notifications when new promotions are added.
+PromoScout is a TypeScript-based Discord bot that aggregates promotions and giveaways from multiple TV, radio, and other sites and sends notifications when new promotions appear.
 
 ## Features
 
-- 🔍 Scrapes promotions from the official StaatsLoterij website
-- 📅 Checks for new promotions every 24 hours
-- 💾 Caches promotions locally to detect new ones
-- 🔔 Sends Discord notifications with rich embeds
-- 🖼️ Includes promotion images and CTA buttons
+- 📡 Multi-site promotion aggregation: Staatsloterij, Talpa Network (SBS6, NET5), SkyRadio, Radio10, Radio538
+- 🔍 Site-specific scrapers with a shared parsing/cache/notification pipeline
+- ⏱️ Configurable check interval (default: 12 hours)
+- 💾 Local caching to detect and persist promotions between runs
+- 🔔 Discord notifications with rich embeds, images and CTA buttons
+- 🔁 Idempotent detection to avoid duplicate notifications
+- 🧩 Extensible architecture: add new site scrapers under `src/sites`
 - 🚀 Written in TypeScript with type safety
+
+## Supported sites
+
+<img alt="Talpa" height="48" src="docs/img/staatsloterij-icon.png" width="48"/>
+<img alt="Talpa" height="48" src="docs/img/talpa-icon.png" width="48"/>
+<img alt="Talpa" height="48" src="docs/img/skyradio-icon.png" width="48"/>
+<img alt="Talpa" height="48" src="docs/img/radio10-icon.png" width="48"/>
+<img alt="Talpa" height="48" src="docs/img/radio538-icon.png" width="48"/>
+
+- Staatsloterij
+- Talpa Network Television (SBS6, NET5 and related channels)
+- SkyRadio
+- Radio10
+- Radio538
 
 ## Setup
 
@@ -61,20 +75,23 @@ yarn start
 
 ## How It Works
 
-1. **Scraping**: The bot fetches the promotions page and parses HTML using Cheerio
-2. **Caching**: Promotions are stored in `promotions-cache.json` with unique IDs
-3. **Detection**: New promotions are identified by comparing with cached IDs
-4. **Notification**: Discord webhook sends rich embeds with:
+1. **Site scrapers**: Each supported site has a scraper module under `src/sites/` that knows how to fetch and parse that site's promotion pages.
+2. **Normalization**: Scraped promotions are normalized into a common promotion shape (`src/type/types.ts`).
+3. **Caching**: Promotions are stored in `promotions-cache.json` with unique IDs to track which promotions were already seen.
+4. **Detection**: New promotions are identified by comparing fetched IDs with the cache.
+5. **Notification**: The bot sends Discord webhook messages (rich embeds) for newly detected promotions:
     - Promotion title
-    - Description
-    - Banner image
+    - Description (if available)
+    - Banner image (if available)
     - CTA button linking to the promotion
 
 ## Project Structure
 
 ```
 ├── src/
-│   └── index.ts          # Main bot code
+│   ├── index.ts          # Main bot code / scheduler
+│   ├── sites/            # Site-specific scrapers (staatsloterij, talpa-sites, etc.)
+│   └── repository/       # Cache & persistence helpers
 ├── dist/                 # Compiled JavaScript (generated)
 ├── promotions-cache.json # Local cache (auto-generated)
 ├── package.json
@@ -102,7 +119,7 @@ The bot creates a `promotions-cache.json` file that stores:
 yarn install -g pm2
 
 # Start the bot
-pm2 start dist/index.js --name staatsloterij-bot
+pm2 start dist/index.js --name promoscout-bot
 
 # Auto-start on system reboot
 pm2 startup
@@ -111,11 +128,11 @@ pm2 save
 
 ### Using systemd (Linux)
 
-Create `/etc/systemd/system/staatsloterij-bot.service`:
+Create `/etc/systemd/system/promoscout-bot.service`:
 
 ```ini
 [Unit]
-Description=StaatsLoterij Discord Bot
+Description=PromoScout Discord Bot
 After=network.target
 
 [Service]
@@ -133,8 +150,8 @@ WantedBy=multi-user.target
 Then:
 
 ```bash
-sudo systemctl enable staatsloterij-bot
-sudo systemctl start staatsloterij-bot
+sudo systemctl enable promoscout-bot
+sudo systemctl start promoscout-bot
 ```
 
 ## Customization
@@ -146,56 +163,17 @@ Edit the `checkInterval` in `src/index.ts`:
 ```typescript
 const CONFIG = {
     // ...
-    checkInterval: 24 * 60 * 60 * 1000, // 24 hours (in milliseconds)
-};
-```
-
-### Customize Discord Embed
-
-Modify the embed in the `sendDiscordNotification` function:
-
-```typescript
-const embed = {
-    title: promotion.title,
-    description: promotion.description,
-    color: 0x0066CC, // Change color here (hex without #)
-    // ... other properties
+    checkInterval: 12 * 60 * 60 * 1000, // 12 hours (in milliseconds)
 };
 ```
 
 ## Other Notes
 
-### Club Polls
+### Notes & site-specific tips
 
-Staatsloterij has a monthly opinion panel (poll), where you can submit your answer to a selection of four options to a statement. You will get +5 club points
-for a submitted answer.
+- Some sites have additional interactive features (e.g., Staatsloterij club polls). The scrapers only surface publicly-visible promotions and links — they do not automate interactive actions on external sites.
 
-They call `https://club-staatsloterij.nederlandseloterij.nl/poll/post` to submit your answer. Though, when you catch the sent out request, and send it again,
-you will get +5 points again. You can do this a couple times before the request expires! 🤑
-
-## Troubleshooting
-
-### Bot doesn't send notifications
-
-1. Verify your webhook URL is correct
-2. Check the console for error messages
-3. Ensure the bot has successfully scraped promotions (check logs)
-
-### Cache file issues
-
-If the bot keeps resending old promotions:
-
-1. Stop the bot
-2. Delete `promotions-cache.json`
-3. Restart the bot (it will rebuild the cache)
-
-### Scraping fails
-
-The StaatsLoterij website structure might have changed. Check:
-
-1. The URL is still accessible
-2. The HTML structure matches the selectors in the code
-3. Console logs for specific error messages
+- If a site's HTML changes, update the corresponding scraper in `src/sites/`.
 
 ## License
 
