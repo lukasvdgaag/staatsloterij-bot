@@ -34,6 +34,11 @@ export interface Cache {
     lastChecked: string;
 }
 
+// Results of trying to scrape a site
+export type ScrapeResult =
+    | { ok: true; promotions: Omit<Promotion, 'id'>[] }
+    | { ok: false; error: any };
+
 export interface Config {
     webhookUrl: string;
     cacheFile: string;

@@ -1,16 +1,17 @@
-import {Cache, Config, Promotion, SiteDefinition} from "../type/types";
+import {createHash} from 'crypto';
+import {Cache, Config, Promotion, ScrapeResult, SiteDefinition} from "../type/types";
 import {getPromotionsForSite, loadCache, saveCache} from '../util/cache';
 import {sendDiscordNotification} from '../util/messenger';
 import {sites} from '../sites';
 
 const generatePromotionId = (promotion: Omit<Promotion, 'id'>): string => {
     const str = `${promotion.source}-${promotion.title}-${promotion.ctaUrl}`;
-    return Buffer.from(str).toString('base64').slice(0, 32);
+    return createHash('sha256').update(str).digest('hex');
 }
 
-const scrapeSite = async (site: SiteDefinition): Promise<Omit<Promotion, 'id'>[]> => {
+const scrapeSite = async (site: SiteDefinition): Promise<ScrapeResult> => {
     try {
-        const promotionsPath = `${site.baseUrl}/${site.promotionsPath}`
+        const promotionsPath = `${site.baseUrl}/${site.promotionsPath}`;
         console.log(`[${site.name}] Fetching promotions from ${promotionsPath}...`);
 
         const response = await fetch(promotionsPath);
@@ -21,14 +22,20 @@ const scrapeSite = async (site: SiteDefinition): Promise<Omit<Promotion, 'id'>[]
         const html = await response.text();
         const rawPromotions = site.scrape(html);
 
-        return rawPromotions.map(p => ({
-            ...p,
-            source: site.id,
-            scrapedAt: new Date().toISOString(),
-        }));
+        return {
+            ok: true,
+            promotions: rawPromotions.map(p => ({
+                ...p,
+                source: site.id,
+                scrapedAt: new Date().toISOString(),
+            }))
+        };
     } catch (error) {
         console.error(`[${site.name}] Error scraping:`, error);
-        return [];
+        return {
+            ok: false,
+            error
+        };
     }
 }
 
@@ -39,14 +46,17 @@ export const checkForNewPromotions = async (config: Config): Promise<void> => {
     const allCurrentPromotions: Promotion[] = [];
 
     for (const site of sites) {
-        const rawPromotions = await scrapeSite(site);
+        const scrapeResult = await scrapeSite(site);
 
-        if (rawPromotions.length === 0) {
-            console.log(`[${site.name}] No promotions found or error occurred`);
+        if (!scrapeResult.ok) {
+            console.log(`[${site.name}] Scrape failed, preserving existing cached promotions`);
             // Keep existing cached promotions for this site
             allCurrentPromotions.push(...getPromotionsForSite(cache, site.id));
             continue;
         }
+
+        // On success (even if result is empty), update cached entries for this site to match new scrape
+        const rawPromotions = scrapeResult.promotions;
 
         // Tag with IDs
         const currentPromotions: Promotion[] = rawPromotions.map(p => {
@@ -66,6 +76,7 @@ export const checkForNewPromotions = async (config: Config): Promise<void> => {
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
+        // Always use only currentPromotions for this site
         allCurrentPromotions.push(...currentPromotions);
 
         // Delay between sites to avoid rate limiting

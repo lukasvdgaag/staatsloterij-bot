@@ -17,5 +17,5 @@ for (const p of envPaths) {
 export const CONFIG: Config = {
     webhookUrl: process.env.DISCORD_WEBHOOK_URL || '',
     cacheFile: path.join(__dirname, 'promotions-cache.json'),
-    checkInterval: 6 * 60 * 60 * 1000, // 6 hours
+    checkInterval: 12 * 60 * 60 * 1000, // 12 hours
 };

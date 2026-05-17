@@ -1,7 +1,7 @@
 {
-  "name": "staatsloterij-discord-bot",
+  "name": "promoscout",
   "version": "1.0.0",
-  "description": "Discord bot that notifies about new StaatsLoterij promotions",
+  "description": "Discord bot that aggregates promotions from TV and radio sites and sends notifications",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -12,8 +12,9 @@
   "keywords": [
     "discord",
     "bot",
-    "staatsloterij",
-    "scraper"
+    "promotions",
+    "scraper",
+    "promoscout"
   ],
   "author": "lukasvdgaag",
   "license": "MIT",
